@@ -31,6 +31,14 @@ async function run() {
             
         });
 
+        // POST: Post in the furniture collections 
+        app.post('/furnitures', async (req, res) => {
+            const furnitures = req.body;
+            const result = await furnitureCollection.insertOne(furnitures);
+            res.send(result);
+        } )
+
+
         // DELETE: delete item from manage Inventories 
         app.delete('/furnitures/:id', async (req, res) => {
             const id = req.params.id;
