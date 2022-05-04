@@ -49,6 +49,30 @@ async function run() {
             
         })
 
+        // find single furniture details 
+        app.get('/furnitures/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await furnitureCollection.findOne(query);
+            
+            res.send(result);
+        })
+        // update furniture quantity 
+        app.put('/furnitures/:id', async (req, res) => {
+            const id = req.params.id;
+            const Updatefurniture = req.body;
+            const filter = { _id: ObjectId(id) }
+
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    quantity: Updatefurniture.quantity
+                }
+            };
+            const result = await furnitureCollection.updateOne(filter,updateDoc,options);
+            
+            res.send(result);
+        })
 
 
     } finally {
