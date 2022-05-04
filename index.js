@@ -21,6 +21,7 @@ async function run() {
     try {
         await client.connect();
         const furnitureCollection = client.db("inventory").collection("furnitures");
+        const myItemsCollection = client.db("inventory").collection("myItems");
 
         // GET: get all furniture and send back to client
         app.get('/furnitures', async (req, res) => {
@@ -74,6 +75,7 @@ async function run() {
             res.send(result);
         })
 
+       
 
     } finally {
         
