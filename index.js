@@ -75,8 +75,31 @@ async function run() {
             res.send(result);
         })
 
-       
-
+        app.post('/myItems', async (req, res) => {
+            const myFruniture = req.body;
+            console.log(myFruniture);
+            const result = await myItemsCollection.insertOne(myFruniture);
+            res.send(result);
+        })
+        
+        app.get('/myItems/:email', async (req, res) => {
+            const email = req.params.email;
+            
+            const query = { email: email };
+            const cursor = myItemsCollection.find(query);
+            const result = await cursor.toArray();
+          
+            res.send(result);
+            
+        })
+        app.delete('/myItems/:id', async (req, res) => {
+            const id = req.params.id;
+            
+            const query = { _id: ObjectId(id) };
+            const result = await myItemsCollection.deleteOne(query);
+            res.send(result);
+            
+        })
     } finally {
         
     }
