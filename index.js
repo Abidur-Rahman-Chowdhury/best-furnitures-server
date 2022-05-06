@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { config } = require('dotenv');
+const jwt = require('jsonwebtoken');
+const verify = require('jsonwebtoken/verify');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -10,6 +12,24 @@ require('dotenv').config();
 
 app.use(cors());
 app.use(express.json());
+
+const tokenVerify = (req, res, next) => {
+    const headerInfo = req.headers.authorization;
+    
+    if (!headerInfo) {
+        return res.status(401).send({message: 'Unauthorized Access'})
+    }
+    const token = headerInfo.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+          return  res.status(403).send({message: 'Forbidden Access'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+   
+    
+}
 
 app.get('/', (req, res) => {
     res.send('Inventory Server is running');
@@ -22,6 +42,16 @@ async function run() {
         await client.connect();
         const furnitureCollection = client.db("inventory").collection("furnitures");
         const myItemsCollection = client.db("inventory").collection("myItems");
+
+
+        // Secure API
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            });
+            res.send({ accessToken });
+        })
 
         // GET: get all furniture and send back to client
         app.get('/furnitures', async (req, res) => {
@@ -82,14 +112,20 @@ async function run() {
             res.send(result);
         })
         
-        app.get('/myItems/:email', async (req, res) => {
-            const email = req.params.email;
+        app.get('/myItems', tokenVerify, async (req, res) => {
+
+            const decodedEmail = req.decoded.email;
+            const userEmail = req.query.email;
+            if (userEmail !== decodedEmail) {
+                res.status(403).send({message: 'Forbidden Request'})
+            }
+            else {
+                const query = { email: userEmail };
+                const cursor = myItemsCollection.find(query);
+                const myItems = await cursor.toArray();
+                res.send(myItems);
+            }
             
-            const query = { email: email };
-            const cursor = myItemsCollection.find(query);
-            const result = await cursor.toArray();
-          
-            res.send(result);
             
         })
         app.delete('/myItems/:id', async (req, res) => {
