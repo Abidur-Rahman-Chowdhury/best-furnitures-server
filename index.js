@@ -41,7 +41,7 @@ async function run() {
     try {
         await client.connect();
         const furnitureCollection = client.db("inventory").collection("furnitures");
-        const myItemsCollection = client.db("inventory").collection("myItems");
+        // const furnitureCollection = client.db("inventory").collection("myItems");
 
 
         // Secure API
@@ -50,6 +50,7 @@ async function run() {
             const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: '1d'
             });
+            
             res.send({ accessToken });
         })
 
@@ -73,7 +74,7 @@ async function run() {
         // DELETE: delete item from manage Inventories 
         app.delete('/furnitures/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            
             const query = { _id: ObjectId(id) };
             const result = await furnitureCollection.deleteOne(query);
             res.send(result);
@@ -107,8 +108,8 @@ async function run() {
 
         app.post('/myItems', async (req, res) => {
             const myFruniture = req.body;
-            console.log(myFruniture);
-            const result = await myItemsCollection.insertOne(myFruniture);
+            
+            const result = await furnitureCollection.insertOne(myFruniture);
             res.send(result);
         })
         
@@ -116,12 +117,13 @@ async function run() {
 
             const decodedEmail = req.decoded.email;
             const userEmail = req.query.email;
+           
             if (userEmail !== decodedEmail) {
                 res.status(403).send({message: 'Forbidden Request'})
             }
             else {
                 const query = { email: userEmail };
-                const cursor = myItemsCollection.find(query);
+                const cursor = furnitureCollection.find(query);
                 const myItems = await cursor.toArray();
                 res.send(myItems);
             }
@@ -132,7 +134,7 @@ async function run() {
             const id = req.params.id;
             
             const query = { _id: ObjectId(id) };
-            const result = await myItemsCollection.deleteOne(query);
+            const result = await furnitureCollection.deleteOne(query);
             res.send(result);
             
         })
